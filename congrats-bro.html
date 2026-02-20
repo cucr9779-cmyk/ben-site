@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Congrats Bro</title>
+    <style>
+      :root {
+        --navy: #001a44;
+        --white: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--navy);
+        color: var(--white);
+        font-family: "Times New Roman", Times, serif;
+      }
+
+      .audio-bar {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 14px 16px 0;
+      }
+
+      .audio-controls {
+        display: grid;
+        justify-items: center;
+        gap: 8px;
+      }
+
+      .audio-button {
+        font-family: "Times New Roman", Times, serif;
+        border: 1px solid var(--white);
+        background: transparent;
+        color: var(--white);
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+
+      .timeline {
+        width: min(80vw, 420px);
+      }
+
+      .wrap {
+        min-height: calc(100vh - 64px);
+        display: grid;
+        place-items: center;
+        padding: 16px;
+      }
+
+      .message {
+        border: 1px solid var(--white);
+        padding: 18px 24px;
+        font-size: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="audio-bar">
+      <div class="audio-controls">
+        <audio id="devan-audio" src="./50-cent.mp3" preload="auto" autoplay></audio>
+        <button id="audio-toggle" class="audio-button" type="button">Pause</button>
+        <input id="audio-timeline" class="timeline" type="range" min="0" max="100" value="0" step="0.1" aria-label="Song timeline" />
+      </div>
+    </div>
+    <main class="wrap">
+      <div class="message">congrats bro</div>
+    </main>
+    <script>
+      const audio = document.getElementById("devan-audio");
+      const toggle = document.getElementById("audio-toggle");
+      const timeline = document.getElementById("audio-timeline");
+      const shouldAutoplay = sessionStorage.getItem("playDevanAudio") === "1";
+      sessionStorage.removeItem("playDevanAudio");
+      let isScrubbing = false;
+
+      async function tryPlay() {
+        try {
+          await audio.play();
+          removeResumeListeners();
+        } catch {
+          addResumeListeners();
+        }
+      }
+
+      function resumeOnInteraction() {
+        void tryPlay();
+      }
+
+      function addResumeListeners() {
+        window.addEventListener("pointerdown", resumeOnInteraction, { once: true });
+        window.addEventListener("keydown", resumeOnInteraction, { once: true });
+        window.addEventListener("touchstart", resumeOnInteraction, { once: true });
+      }
+
+      function removeResumeListeners() {
+        window.removeEventListener("pointerdown", resumeOnInteraction);
+        window.removeEventListener("keydown", resumeOnInteraction);
+        window.removeEventListener("touchstart", resumeOnInteraction);
+      }
+
+      function syncButtonLabel() {
+        toggle.textContent = audio.paused ? "Play" : "Pause";
+      }
+
+      function syncTimeline() {
+        if (!Number.isFinite(audio.duration) || audio.duration <= 0 || isScrubbing) {
+          return;
+        }
+        timeline.value = (audio.currentTime / audio.duration) * 100;
+      }
+
+      toggle.addEventListener("click", async () => {
+        if (audio.paused) {
+          await tryPlay();
+        } else {
+          audio.pause();
+        }
+        syncButtonLabel();
+      });
+
+      audio.addEventListener("play", syncButtonLabel);
+      audio.addEventListener("pause", syncButtonLabel);
+      audio.addEventListener("timeupdate", syncTimeline);
+      audio.addEventListener("loadedmetadata", syncTimeline);
+
+      timeline.addEventListener("pointerdown", () => {
+        isScrubbing = true;
+      });
+
+      timeline.addEventListener("pointerup", () => {
+        isScrubbing = false;
+      });
+
+      timeline.addEventListener("input", () => {
+        if (!Number.isFinite(audio.duration) || audio.duration <= 0) {
+          return;
+        }
+        const nextTime = (timeline.value / 100) * audio.duration;
+        audio.currentTime = nextTime;
+      });
+
+      if (shouldAutoplay) {
+        void tryPlay();
+      } else {
+        addResumeListeners();
+      }
+
+      syncButtonLabel();
+    </script>
+  </body>
+</html>
