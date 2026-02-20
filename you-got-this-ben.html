@@ -29,7 +29,22 @@
       }
 
       .audio-controls {
-        display: inline-block;
+        display: grid;
+        justify-items: center;
+        gap: 8px;
+      }
+
+      .audio-button {
+        font-family: "Times New Roman", Times, serif;
+        border: 1px solid var(--white);
+        background: transparent;
+        color: var(--white);
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+
+      .timeline {
+        width: min(80vw, 420px);
       }
 
       .wrap {
@@ -50,6 +65,8 @@
     <div class="audio-bar">
       <div class="audio-controls">
         <audio id="ben-audio" src="./control cover.mp3" preload="auto" autoplay></audio>
+        <button id="audio-toggle" class="audio-button" type="button">Pause</button>
+        <input id="audio-timeline" class="timeline" type="range" min="0" max="100" value="0" step="0.1" aria-label="Song timeline" />
       </div>
     </div>
     <main class="wrap">
@@ -57,8 +74,11 @@
     </main>
     <script>
       const audio = document.getElementById("ben-audio");
+      const toggle = document.getElementById("audio-toggle");
+      const timeline = document.getElementById("audio-timeline");
       const shouldAutoplay = sessionStorage.getItem("playBenAudio") === "1";
       sessionStorage.removeItem("playBenAudio");
+      let isScrubbing = false;
 
       async function tryPlay() {
         try {
@@ -85,11 +105,54 @@
         window.removeEventListener("touchstart", resumeOnInteraction);
       }
 
+      function syncButtonLabel() {
+        toggle.textContent = audio.paused ? "Play" : "Pause";
+      }
+
+      function syncTimeline() {
+        if (!Number.isFinite(audio.duration) || audio.duration <= 0 || isScrubbing) {
+          return;
+        }
+        timeline.value = (audio.currentTime / audio.duration) * 100;
+      }
+
+      toggle.addEventListener("click", async () => {
+        if (audio.paused) {
+          await tryPlay();
+        } else {
+          audio.pause();
+        }
+        syncButtonLabel();
+      });
+
+      audio.addEventListener("play", syncButtonLabel);
+      audio.addEventListener("pause", syncButtonLabel);
+      audio.addEventListener("timeupdate", syncTimeline);
+      audio.addEventListener("loadedmetadata", syncTimeline);
+
+      timeline.addEventListener("pointerdown", () => {
+        isScrubbing = true;
+      });
+
+      timeline.addEventListener("pointerup", () => {
+        isScrubbing = false;
+      });
+
+      timeline.addEventListener("input", () => {
+        if (!Number.isFinite(audio.duration) || audio.duration <= 0) {
+          return;
+        }
+        const nextTime = (timeline.value / 100) * audio.duration;
+        audio.currentTime = nextTime;
+      });
+
       if (shouldAutoplay) {
         void tryPlay();
       } else {
         addResumeListeners();
       }
+
+      syncButtonLabel();
     </script>
   </body>
 </html>
