@@ -29,20 +29,7 @@
       }
 
       .audio-controls {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        border: 1px solid var(--white);
-        padding: 8px 12px;
-      }
-
-      .audio-button {
-        font-family: "Times New Roman", Times, serif;
-        border: 1px solid var(--white);
-        background: transparent;
-        color: var(--white);
-        padding: 4px 10px;
-        cursor: pointer;
+        display: inline-block;
       }
 
       .wrap {
@@ -62,8 +49,7 @@
   <body>
     <div class="audio-bar">
       <div class="audio-controls">
-        <audio id="ben-audio" src="./control cover.wav" preload="auto"></audio>
-        <button id="toggle-audio" class="audio-button" type="button">Pause</button>
+        <audio id="ben-audio" src="./control cover.mp3" preload="auto" autoplay></audio>
       </div>
     </div>
     <main class="wrap">
@@ -71,27 +57,39 @@
     </main>
     <script>
       const audio = document.getElementById("ben-audio");
-      const toggleButton = document.getElementById("toggle-audio");
+      const shouldAutoplay = sessionStorage.getItem("playBenAudio") === "1";
+      sessionStorage.removeItem("playBenAudio");
 
       async function tryPlay() {
         try {
           await audio.play();
-          toggleButton.textContent = "Pause";
+          removeResumeListeners();
         } catch {
-          toggleButton.textContent = "Play";
+          addResumeListeners();
         }
       }
 
-      toggleButton.addEventListener("click", async () => {
-        if (audio.paused) {
-          await tryPlay();
-        } else {
-          audio.pause();
-          toggleButton.textContent = "Play";
-        }
-      });
+      function resumeOnInteraction() {
+        void tryPlay();
+      }
 
-      tryPlay();
+      function addResumeListeners() {
+        window.addEventListener("pointerdown", resumeOnInteraction, { once: true });
+        window.addEventListener("keydown", resumeOnInteraction, { once: true });
+        window.addEventListener("touchstart", resumeOnInteraction, { once: true });
+      }
+
+      function removeResumeListeners() {
+        window.removeEventListener("pointerdown", resumeOnInteraction);
+        window.removeEventListener("keydown", resumeOnInteraction);
+        window.removeEventListener("touchstart", resumeOnInteraction);
+      }
+
+      if (shouldAutoplay) {
+        void tryPlay();
+      } else {
+        addResumeListeners();
+      }
     </script>
   </body>
 </html>

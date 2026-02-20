@@ -58,8 +58,16 @@
     <div class="content">
       <img class="hero-image" src="./ben.png" alt="Ben" />
       <div class="message-wrap">
-        <a class="message-box" href="./you-got-this-ben.html">Dear Ben Goldings</a>
+        <a id="dear-ben-link" class="message-box" href="./you-got-this-ben.html">Dear Ben Goldings</a>
       </div>
     </div>
+    <script>
+      const link = document.getElementById("dear-ben-link");
+      if (link) {
+        link.addEventListener("click", () => {
+          sessionStorage.setItem("playBenAudio", "1");
+        });
+      }
+    </script>
   </body>
 </html>
