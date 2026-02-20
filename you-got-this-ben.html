@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>You Got This Ben</title>
+    <style>
+      :root {
+        --navy: #001a44;
+        --white: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--navy);
+        color: var(--white);
+        font-family: "Times New Roman", Times, serif;
+      }
+
+      .audio-bar {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 14px 16px 0;
+      }
+
+      .audio-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid var(--white);
+        padding: 8px 12px;
+      }
+
+      .audio-button {
+        font-family: "Times New Roman", Times, serif;
+        border: 1px solid var(--white);
+        background: transparent;
+        color: var(--white);
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+
+      .wrap {
+        min-height: calc(100vh - 64px);
+        display: grid;
+        place-items: center;
+        padding: 16px;
+      }
+
+      .message {
+        border: 1px solid var(--white);
+        padding: 18px 24px;
+        font-size: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="audio-bar">
+      <div class="audio-controls">
+        <audio id="ben-audio" src="./control cover.wav" preload="auto"></audio>
+        <button id="toggle-audio" class="audio-button" type="button">Pause</button>
+      </div>
+    </div>
+    <main class="wrap">
+      <div class="message">you got this ben</div>
+    </main>
+    <script>
+      const audio = document.getElementById("ben-audio");
+      const toggleButton = document.getElementById("toggle-audio");
+
+      async function tryPlay() {
+        try {
+          await audio.play();
+          toggleButton.textContent = "Pause";
+        } catch {
+          toggleButton.textContent = "Play";
+        }
+      }
+
+      toggleButton.addEventListener("click", async () => {
+        if (audio.paused) {
+          await tryPlay();
+        } else {
+          audio.pause();
+          toggleButton.textContent = "Play";
+        }
+      });
+
+      tryPlay();
+    </script>
+  </body>
+</html>
